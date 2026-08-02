@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -413,6 +413,50 @@
   }
   .zoom-caption{ position:absolute; bottom:-34px; left:0; font-size:12px; color:var(--muted); }
 
+  /* ================= CHECKOUT MODAL ================= */
+  .checkout-modal{
+    position:fixed; inset:0; background:rgba(8,9,11,0.85);
+    display:none; align-items:center; justify-content:center; z-index:130; padding:20px;
+  }
+  .checkout-modal.open{ display:flex; }
+  .checkout-panel{
+    width:min(480px,100%); max-height:88vh; overflow-y:auto;
+    background:var(--surface); border:1px solid var(--line);
+  }
+  .checkout-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px; border-bottom:1px solid var(--line);
+  }
+  .checkout-head h3{ margin:0; font-size:18px; }
+  .checkout-body{ padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .field label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px; }
+  .field input, .field textarea{
+    width:100%; background:var(--surface-alt); border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; font-size:13px; font-family:'Work Sans'; resize:vertical;
+  }
+  .loc-btn{
+    display:flex; align-items:center; gap:8px;
+    background:transparent; border:1px dashed var(--volt); color:var(--volt);
+    padding:9px 12px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;
+    width:100%; margin-top:8px;
+  }
+  .loc-btn svg{ width:14px; height:14px; }
+  .loc-status{ font-size:11px; color:var(--muted); margin-top:6px; }
+  .co-summary{ background:var(--surface-alt); border:1px solid var(--line); padding:12px; font-size:12px; }
+  .co-summary .row{ display:flex; justify-content:space-between; padding:4px 0; color:var(--muted); }
+  .co-summary .row.total{ color:var(--text); font-weight:700; border-top:1px solid var(--line); margin-top:6px; padding-top:8px; }
+  .pay-btn{
+    width:100%; background:var(--volt); border:0; color:#12151A; font-weight:700;
+    padding:14px; text-transform:uppercase; letter-spacing:0.04em; font-size:13px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .mail-btn{
+    width:100%; background:transparent; border:1px solid rgba(242,241,234,0.35); color:var(--text); font-weight:600;
+    padding:12px; text-transform:uppercase; letter-spacing:0.04em; font-size:12px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .co-note{ font-size:11px; color:var(--muted); line-height:1.5; }
+
   /* Toast */
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
@@ -421,6 +465,7 @@
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
 
@@ -609,6 +654,47 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <span class="zoom-caption" id="zoomCaption"></span>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="checkout-modal" id="checkoutModal">
+  <div class="checkout-panel">
+    <div class="checkout-head">
+      <h3>Place Order</h3>
+      <button class="drawer-close" id="checkoutClose" aria-label="Close checkout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="checkout-body">
+      <div class="field">
+        <label for="custName">Full Name</label>
+        <input type="text" id="custName" placeholder="Your name" />
+      </div>
+      <div class="field">
+        <label for="custPhone">Phone Number</label>
+        <input type="tel" id="custPhone" placeholder="10-digit mobile number" />
+      </div>
+      <div class="field">
+        <label for="custAddress">Delivery Address</label>
+        <textarea id="custAddress" rows="3" placeholder="House no, street, city, pincode"></textarea>
+        <button class="loc-btn" id="useLocationBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Use My Current Location
+        </button>
+        <div class="loc-status" id="locStatus"></div>
+      </div>
+      <div class="co-summary" id="coSummary"></div>
+      <button class="pay-btn" id="payBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Pay Now (UPI / Card / Netbanking)
+      </button>
+      <button class="mail-btn" id="emailOrderBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+        Email Order Details Manually
+      </button>
+      <p class="co-note" id="checkoutNote">"Pay Now" opens a secure Razorpay checkout — after payment, your order (with contact info and location) is emailed automatically to the store. "Email Order Details Manually" is a backup that opens your own mail app instead.</p>
+    </div>
   </div>
 </div>
 
@@ -948,9 +1034,166 @@ function renderCart(){
   const subtotal = cart.reduce((s,c)=>s + c.price*c.qty, 0);
   document.getElementById('cartSubtotal').textContent = rupee(subtotal);
 }
+// TODO: replace with your deployed backend URL (see backend/README.md, Step 3)
+const BACKEND_URL = 'https://fullfleg-backend.onrender.com';
+// TODO: replace with your Razorpay Key ID (public — safe to expose in frontend). See backend/README.md, Step 1.
+const RAZORPAY_KEY_ID = 'rzp_test_TKli1GGI1f6kEx';
+
+const SHOP_EMAIL = 'hjanghu77@gmail.com';
+const SHOP_PHONE = '8168743794';
+let capturedLocation = ''; // human-readable, filled by geolocation
+
 document.getElementById('checkoutBtn').onclick = ()=>{
-  if(cart.length===0){ showToast('Your cart is empty'); return; }
-  showToast('Demo store — checkout is not connected yet');
+  if(cart.length===0){ showToast('Your cart is empty'); closeDrawers(); return; }
+  closeDrawers();
+  renderCheckoutSummary();
+  document.getElementById('checkoutModal').classList.add('open');
+};
+document.getElementById('checkoutClose').onclick = ()=>{
+  document.getElementById('checkoutModal').classList.remove('open');
+};
+document.getElementById('checkoutModal').addEventListener('click', e=>{
+  if(e.target.id==='checkoutModal') document.getElementById('checkoutModal').classList.remove('open');
+});
+
+function renderCheckoutSummary(){
+  const subtotal = cart.reduce((s,c)=>s + c.price*c.qty, 0);
+  document.getElementById('coSummary').innerHTML = `
+    ${cart.map(c=>`<div class="row"><span>${c.name} (${c.variantLabel||'Standard'}) × ${c.qty}</span><span>${rupee(c.price*c.qty)}</span></div>`).join('')}
+    <div class="row total"><span>Total</span><span>${rupee(subtotal)}</span></div>
+  `;
+}
+
+document.getElementById('useLocationBtn').onclick = ()=>{
+  const status = document.getElementById('locStatus');
+  if(!navigator.geolocation){
+    status.textContent = 'Location not supported on this device.';
+    return;
+  }
+  status.textContent = 'Fetching your location…';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const {latitude, longitude} = pos.coords;
+    capturedLocation = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    status.textContent = `Location captured: ${capturedLocation} (converting to address…)`;
+    try{
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const data = await res.json();
+      if(data && data.display_name){
+        capturedLocation = data.display_name + ` (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
+        const addrBox = document.getElementById('custAddress');
+        if(!addrBox.value.trim()) addrBox.value = data.display_name;
+        status.textContent = `Location added: ${data.display_name}`;
+      }
+    }catch(err){
+      status.textContent = `Location captured (coordinates): ${capturedLocation}`;
+    }
+  }, err=>{
+    status.textContent = 'Could not get location — please allow permission, or type your address manually.';
+  }, {enableHighAccuracy:true, timeout:10000});
+};
+
+function buildOrderText(){
+  const name = document.getElementById('custName').value.trim() || 'Not provided';
+  const phone = document.getElementById('custPhone').value.trim() || 'Not provided';
+  const address = document.getElementById('custAddress').value.trim() || 'Not provided';
+  const subtotal = cart.reduce((s,c)=>s + c.price*c.qty, 0);
+  const items = cart.map(c=>`- ${c.name} (${c.variantLabel||'Standard'}) x${c.qty} — ${rupee(c.price*c.qty)}`).join('\n');
+  return {
+    subtotal,
+    body:
+`New Fullfleg order
+
+Customer: ${name}
+Phone: ${phone}
+Delivery Address: ${address}
+Location: ${capturedLocation || 'Not captured'}
+
+Items:
+${items}
+
+Total: ${rupee(subtotal)}`
+  };
+}
+
+document.getElementById('payBtn').onclick = async ()=>{
+  const subtotal = cart.reduce((s,c)=>s + c.price*c.qty, 0);
+  if(subtotal<=0){ showToast('Your cart is empty'); return; }
+
+  const customer = {
+    name: document.getElementById('custName').value.trim(),
+    phone: document.getElementById('custPhone').value.trim(),
+    address: document.getElementById('custAddress').value.trim(),
+    location: capturedLocation
+  };
+  if(!customer.name || !customer.phone || !customer.address){
+    showToast('Please fill your name, phone and address first');
+    return;
+  }
+
+  if(BACKEND_URL.includes('YOUR-BACKEND-URL') || RAZORPAY_KEY_ID.includes('XXXXXXXX')){
+    showToast('Backend not connected yet — see backend/README.md to set it up');
+    return;
+  }
+
+  try{
+    showToast('Setting up secure payment…');
+    const orderRes = await fetch(`${BACKEND_URL}/create-order`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ amount: subtotal })
+    });
+    const order = await orderRes.json();
+    if(!order.id){ showToast('Could not start payment. Try again.'); return; }
+
+    const rzp = new Razorpay({
+      key: RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name: 'Fullfleg',
+      description: 'Gym gear order',
+      order_id: order.id,
+      prefill: { name: customer.name, contact: customer.phone },
+      theme: { color: '#C9FF3D' },
+      handler: async function(response){
+        showToast('Verifying payment…');
+        try{
+          const verifyRes = await fetch(`${BACKEND_URL}/verify-payment`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              customer, cart
+            })
+          });
+          const result = await verifyRes.json();
+          if(result.verified){
+            showToast('Payment successful! Order emailed to the store.');
+            cart = [];
+            renderCart();
+            document.getElementById('checkoutModal').classList.remove('open');
+          } else {
+            showToast('Payment could not be verified. Please contact support.');
+          }
+        }catch(err){
+          showToast('Payment succeeded but confirmation failed — contact support with your payment ID.');
+        }
+      },
+      modal: { ondismiss: ()=> showToast('Payment cancelled') }
+    });
+    rzp.open();
+  }catch(err){
+    showToast('Could not reach payment server. Please try again.');
+  }
+};
+
+document.getElementById('emailOrderBtn').onclick = ()=>{
+  const {body} = buildOrderText();
+  const subject = encodeURIComponent('New Order — Fullfleg');
+  const mailUrl = `mailto:${SHOP_EMAIL}?subject=${subject}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailUrl;
+  showToast('Opening your mail app with order details…');
 };
 
 /* ============================================================
